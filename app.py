@@ -279,6 +279,19 @@ def init_state():
 
 init_state()
 
+# ✅ FIX 1: Sync pending_topic after init_state (example button click)
+if "pending_topic" in st.session_state:
+    st.session_state.topic_input = st.session_state.pending_topic
+    del st.session_state.pending_topic
+
+# ✅ FIX 3: Auto-trigger research if auto_research flag is set
+auto_research = False
+if "auto_research" in st.session_state and st.session_state.auto_research:
+    auto_research = True
+    st.session_state.auto_research = False
+
+# ----------
+
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
@@ -415,6 +428,9 @@ with left:
         label_visibility="collapsed",
         placeholder="e.g. How is AI affecting entry-level jobs for freshers in India?",
     )
+    
+    # ✅ FIX 2: Sync topic from session state (critical for button click flow)
+    topic = st.session_state.topic_input
 
     st.write("")
     st.markdown('<div class="card-title">TRY A QUERY</div>', unsafe_allow_html=True)
@@ -428,8 +444,14 @@ with left:
     for idx, ex in enumerate(examples):
         with example_cols[idx % 2]:
             if st.button(ex, key=f"example_{idx}", use_container_width=True, type="secondary"):
-                st.session_state.topic_input = ex
+                # ✅ Option A: Two-click flow (current - safe, standard)
+                st.session_state.pending_topic = ex
                 st.rerun()
+                
+                # ✅ Option B: Uncomment below for single-click research
+                # st.session_state.topic_input = ex
+                # st.session_state.auto_research = True
+                # st.rerun()
 
     st.write("")
     run_btn = st.button("🚀  Start research", use_container_width=True)
@@ -443,7 +465,7 @@ with right:
 # -----------------------------------------------------------------------------
 # Pipeline execution
 # -----------------------------------------------------------------------------
-if run_btn:
+if run_btn or auto_research:
     if not topic.strip():
         st.warning("Enter a research topic first.")
         st.stop()
@@ -608,7 +630,7 @@ if r:
     with tabs[1]:
         if "search" in r:
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown('<div class="result-label">SEARCH AGENT OUTPUT</div>', unsafe_allow_html=True)
+            st.markdown('<div class="result-label">SEARCH AGENT OUTPUT</div>', unsafe_have_html=True)
             st.markdown(r["search"])
             st.markdown('</div>', unsafe_allow_html=True)
 
