@@ -8,9 +8,9 @@ import streamlit as st
 
 from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
 
-# -----------------------------------------------------------------------------
-# App configuration
-# -----------------------------------------------------------------------------
+# ============================================================================
+# App Configuration
+# ============================================================================
 GROQ_MODEL = "openai/gpt-oss-120b"
 APP_NAME = "ResearchMind"
 
@@ -21,451 +21,411 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# -----------------------------------------------------------------------------
-# Styling
-# -----------------------------------------------------------------------------
+# ============================================================================
+# Modern Professional Styling
+# ============================================================================
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --bg: #0f0a1e;
-    --panel: rgba(20, 12, 40, 0.65);
-    --panel-2: rgba(15, 10, 28, 0.88);
-    --border: rgba(168, 85, 247, .15);
-    --border-strong: rgba(139, 92, 246, .45);
-    --text: #f0f4ff;
-    --muted: #a0afc0;
-    --accent: #8b5cf6;
-    --accent-2: #06b6d4;
-    --accent-3: #ec4899;
+    --bg-dark: #0a0e27;
+    --bg-darker: #050812;
+    --surface: #13172d;
+    --surface-light: #1a1f3a;
+    --border-color: #252d47;
+    --border-accent: #ff9500;
+    --text-primary: #ffffff;
+    --text-secondary: #b3bcc8;
+    --text-muted: #7a8494;
+    --accent-saffron: #ff9500;
+    --accent-blue: #3b82f6;
     --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-}
-
-@keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 10px 30px rgba(139, 92, 246, 0.15); }
-    50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 10px 40px rgba(139, 92, 246, 0.25); }
-}
-
-@keyframes slide-up {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in-scale {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes shimmer-pulse {
-    0%, 100% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-
-@keyframes counter-up {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes step-enter {
-    from { opacity: 0; transform: translateX(-12px); }
-    to { opacity: 1; transform: translateX(0); }
 }
 
 html, body, [class*="css"] {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .stApp {
-    color: var(--text);
-    background:
-        radial-gradient(900px 500px at 8% -8%, rgba(139, 92, 246, .22), transparent 60%),
-        radial-gradient(760px 480px at 94% 8%, rgba(6, 182, 212, .12), transparent 58%),
-        radial-gradient(900px 560px at 50% 110%, rgba(236, 72, 153, .06), transparent 62%),
-        var(--bg);
+    color: var(--text-primary);
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
     background-attachment: fixed;
 }
 
 #MainMenu, footer { visibility: hidden; }
 header { background: transparent !important; }
-.block-container { max-width: 1380px; padding: 1.25rem 2rem 4rem; }
+.block-container { 
+    max-width: 1440px; 
+    padding: 2rem 2.5rem 5rem; 
+}
 
-/* Sidebar */
+/* ========== SIDEBAR ========== */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, rgba(15, 10, 28, .95), rgba(10, 8, 20, .98));
-    border-right: 1.5px solid var(--border);
+    background: linear-gradient(180deg, rgba(5, 8, 18, 0.8), rgba(10, 14, 39, 0.9));
+    border-right: 1px solid var(--border-color);
 }
 section[data-testid="stSidebar"] .block-container { 
-    padding: 1.6rem 1.2rem;
-}
-section[data-testid="stSidebar"] h3 {
-    color: #e9d5ff;
-    font-weight: 700;
+    padding: 2rem 1.5rem;
 }
 
-/* Hero */
+/* ========== HERO SECTION ========== */
 .hero-wrap {
-    position: relative;
-    overflow: hidden;
-    border: 2px solid var(--border-strong);
-    border-radius: 28px;
-    padding: 2.8rem 3rem 2.5rem;
-    background: linear-gradient(135deg, rgba(30, 15, 50, .85), rgba(15, 10, 28, .92));
-    box-shadow: 0 20px 60px rgba(139, 92, 246, .12), 0 0 60px rgba(139, 92, 246, .08);
-    animation: slide-up 0.8s ease-out;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 3rem 3.5rem;
+    background: linear-gradient(135deg, rgba(19, 23, 45, 0.8), rgba(26, 31, 58, 0.6));
+    backdrop-filter: blur(8px);
+    animation: slide-in-up 0.6s ease-out;
 }
-.hero-wrap::before {
-    content: '';
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    left: -150px;
-    top: -150px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(139, 92, 246, .15), transparent 70%);
-    pointer-events: none;
-}
-.hero-wrap::after {
-    content: '';
-    position: absolute;
-    width: 280px;
-    height: 280px;
-    right: -100px;
-    top: -80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(6, 182, 212, .12), transparent 68%);
-    pointer-events: none;
-}
+
 .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
-    padding: .45rem .85rem;
-    border: 1.5px solid rgba(139, 92, 246, .4);
-    border-radius: 999px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, .15), rgba(6, 182, 212, .08));
-    color: #e9d5ff;
-    font: 600 .72rem/1 'DM Mono', monospace;
-    letter-spacing: .16em;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: rgba(19, 23, 45, 0.6);
+    color: var(--text-secondary);
+    font: 600 0.7rem/1 'Inter', monospace;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    animation: fade-in-scale 0.8s ease-out;
-}
-.hero-title {
-    margin: 1rem 0 .7rem;
-    font-size: clamp(2.8rem, 6vw, 4.8rem);
-    line-height: 1;
-    letter-spacing: -.06em;
-    font-weight: 800;
-    animation: slide-up 1s ease-out 0.1s both;
-}
-.hero-title span {
-    background: linear-gradient(120deg, #a78bfa, #8b5cf6 35%, #06b6d4 65%, #ec4899);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    background-size: 200% 200%;
-    animation: glow-pulse 3s ease-in-out infinite;
-}
-.hero-sub {
-    max-width: 800px;
-    color: #c8d5e8;
-    font-size: 1.05rem;
-    line-height: 1.75;
-    margin: 0;
-    animation: slide-up 1s ease-out 0.2s both;
 }
 
-/* Model pill */
+.hero-title {
+    margin: 1.2rem 0 0.8rem;
+    font-size: clamp(3rem, 7vw, 5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+}
+
+.hero-title-white { color: #ffffff; }
+.hero-title-saffron { color: var(--accent-saffron); }
+
+.hero-sub {
+    max-width: 900px;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin: 1rem 0 0;
+    font-weight: 400;
+}
+
 .model-pill {
     display: inline-flex;
     align-items: center;
-    gap: .6rem;
-    margin-top: 1.2rem;
-    padding: .6rem .9rem;
-    border-radius: 10px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(6, 182, 212, .08));
-    border: 1.5px solid var(--border);
-    color: #e9d5ff;
-    font: 600 .7rem/1.1 'DM Mono', monospace;
-    letter-spacing: .08em;
-    transition: all 0.3s ease;
-    animation: fade-in-scale 0.8s ease-out;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font: 500 0.75rem/1 'Inter', monospace;
+    letter-spacing: 0.08em;
 }
-.model-pill:hover {
-    border-color: var(--border-strong);
-    background: linear-gradient(135deg, rgba(139, 92, 246, .18), rgba(6, 182, 212, .12));
-}
-.dot { 
+
+.status-dot { 
     width: 8px; 
     height: 8px; 
     border-radius: 50%; 
-    background: var(--success); 
-    box-shadow: 0 0 16px rgba(16, 185, 129, .7), inset 0 0 8px rgba(16, 185, 129, .5);
-    animation: glow-pulse 2s ease-in-out infinite;
+    background: var(--success);
 }
 
-/* Generic cards */
+/* ========== CARDS & CONTAINERS ========== */
 .card {
-    background: linear-gradient(135deg, rgba(20, 12, 40, .5), rgba(15, 10, 28, .7));
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 1.4rem 1.5rem;
-    backdrop-filter: blur(12px);
-    transition: all 0.3s ease;
-    animation: fade-in-scale 0.6s ease-out;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
 }
+
 .card:hover {
-    border-color: var(--border-strong);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, .1);
+    border-color: var(--border-accent);
+    background: var(--surface-light);
 }
+
 .card-title {
-    color: #e9d5ff;
-    font: 700 .74rem/1 'DM Mono', monospace;
-    letter-spacing: .16em;
+    color: var(--text-secondary);
+    font: 700 0.75rem/1 'Inter', monospace;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
+
 .card-title::before {
     content: '';
-    display: inline-block;
-    width: 4px;
-    height: 4px;
+    width: 3px;
+    height: 3px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--accent-saffron);
 }
-.muted { color: var(--muted); }
 
-/* Text input */
-.stTextInput > div > div > input, .stTextArea textarea {
-    background: linear-gradient(135deg, rgba(139, 92, 246, .08), rgba(6, 182, 212, .04)) !important;
-    color: var(--text) !important;
-    border: 1.5px solid var(--border) !important;
-    border-radius: 12px !important;
+/* ========== INPUTS ========== */
+.stTextInput > div > div > input,
+.stTextArea textarea {
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
     font-size: 1rem !important;
-    font-family: 'Manrope', sans-serif !important;
-    transition: all 0.3s ease !important;
-    padding: 0.75rem 1rem !important;
-}
-.stTextInput > div > div > input:hover, .stTextArea textarea:hover {
-    border-color: rgba(139, 92, 246, .3) !important;
-    background: linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(6, 182, 212, .08)) !important;
-}
-.stTextInput > div > div > input:focus, .stTextArea textarea:focus {
-    border-color: var(--accent) !important;
-    background: linear-gradient(135deg, rgba(139, 92, 246, .15), rgba(6, 182, 212, .1)) !important;
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, .15), 0 8px 24px rgba(139, 92, 246, .15) !important;
+    font-family: 'Inter', sans-serif !important;
+    padding: 0.8rem 1rem !important;
+    transition: all 0.2s ease !important;
 }
 
-/* Buttons */
-.stButton > button, .stDownloadButton > button {
-    border-radius: 12px !important;
-    border: 1.5px solid var(--border-strong) !important;
-    background: linear-gradient(135deg, #8b5cf6, #06b6d4) !important;
+.stTextInput > div > div > input:hover,
+.stTextArea textarea:hover {
+    border-color: var(--border-accent) !important;
+    background: var(--surface-light) !important;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea textarea:focus {
+    border-color: var(--accent-saffron) !important;
+    background: var(--surface-light) !important;
+    box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1) !important;
+}
+
+/* ========== BUTTONS ========== */
+.stButton > button,
+.stDownloadButton > button {
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    background: linear-gradient(135deg, var(--accent-saffron), #ff8c00) !important;
     color: white !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     font-size: 0.95rem !important;
-    box-shadow: 0 8px 24px rgba(139, 92, 246, .28), 0 0 20px rgba(139, 92, 246, .15) !important;
-    min-height: 3rem !important;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    animation: fade-in-scale 0.6s ease-out;
-}
-.stButton > button:hover, .stDownloadButton > button:hover {
-    border-color: rgba(6, 182, 212, .8) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: 0 16px 40px rgba(139, 92, 246, .4), 0 0 30px rgba(6, 182, 212, .25) !important;
-}
-.stButton > button:active, .stDownloadButton > button:active {
-    transform: translateY(-1px) !important;
+    min-height: 2.8rem !important;
+    transition: all 0.2s ease !important;
 }
 
-/* Secondary buttons */
-button[kind="secondary"] {
-    background: linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(6, 182, 212, .08)) !important;
-    border: 1.5px solid var(--border) !important;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, .1) !important;
-    color: #e9d5ff !important;
-}
-button[kind="secondary"]:hover {
-    background: linear-gradient(135deg, rgba(139, 92, 246, .2), rgba(6, 182, 212, .15)) !important;
-    border-color: var(--border-strong) !important;
+.stButton > button:hover,
+.stDownloadButton > button:hover {
+    border-color: var(--accent-saffron) !important;
     transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(255, 149, 0, 0.25) !important;
 }
 
-/* Status cards */
+button[kind="secondary"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: none !important;
+}
+
+button[kind="secondary"]:hover {
+    border-color: var(--accent-saffron) !important;
+    background: var(--surface-light) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ========== PIPELINE STEPS ========== */
 .step-card {
-    position: relative;
-    overflow: hidden;
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 1.15rem 1.2rem;
-    background: rgba(139, 92, 246, .04);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: step-enter 0.5s ease-out;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.2rem;
+    background: var(--surface);
+    transition: all 0.3s ease;
+    animation: slide-in-up 0.4s ease-out;
 }
-.step-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, .1), transparent);
-    transition: left 0.6s ease;
+
+.step-card.active {
+    border-color: var(--accent-saffron);
+    background: linear-gradient(135deg, rgba(255, 149, 0, 0.05), rgba(255, 149, 0, 0.02));
 }
-.step-card.active { 
-    border-color: var(--accent);
-    background: linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(139, 92, 246, .05));
-    box-shadow: 0 0 30px rgba(139, 92, 246, .2), inset 0 0 20px rgba(139, 92, 246, .08);
+
+.step-card.done {
+    border-color: var(--success);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
 }
-.step-card.active::before { left: 100%; }
-.step-card.done { 
-    border-color: rgba(16, 185, 129, .45);
-    background: linear-gradient(135deg, rgba(16, 185, 129, .08), rgba(16, 185, 129, .03));
-    box-shadow: 0 0 25px rgba(16, 185, 129, .15);
+
+.step-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
-.step-top { display: flex; align-items: center; gap: .8rem; }
+
 .step-num {
-    width: 36px; height: 36px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
-    font: 600 .75rem/1 'DM Mono', monospace; color:#e9d5ff; background: linear-gradient(135deg, rgba(139, 92, 246, .3), rgba(139, 92, 246, .15));
-    border: 1px solid rgba(139, 92, 246, .3);
-    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 600 0.75rem/1 'Inter', monospace;
+    color: var(--accent-saffron);
+    background: rgba(255, 149, 0, 0.1);
+    border: 1px solid rgba(255, 149, 0, 0.2);
 }
-.step-card.active .step-num { 
-    background: linear-gradient(135deg, rgba(139, 92, 246, .5), rgba(6, 182, 212, .3));
-    box-shadow: 0 0 20px rgba(139, 92, 246, .4);
-    animation: glow-pulse 2s ease-in-out infinite;
-}
-.step-card.done .step-num { 
-    background: linear-gradient(135deg, rgba(16, 185, 129, .4), rgba(16, 185, 129, .2));
+
+.step-card.done .step-num {
     color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
 }
-.step-name { font-weight: 700; font-size: .96rem; color: #e9d5ff; }
-.step-state { margin-left: auto; font: 600 .65rem/1 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
-.waiting { color: #8b9dc3; }
-.running { color: #8b5cf6; font-weight: 700; }
-.done-state { color: var(--success); font-weight: 700; }
-.step-desc { color: #a0afc0; font-size: .78rem; margin-top: .6rem; line-height: 1.5; }
 
-/* Metric cards */
+.step-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.step-state {
+    margin-left: auto;
+    font: 600 0.65rem/1 'Inter', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.waiting { color: var(--text-muted); }
+.running { color: var(--accent-saffron); }
+.done-state { color: var(--success); }
+
+.step-desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.7rem;
+    line-height: 1.5;
+}
+
+/* ========== METRICS ========== */
 .metric {
-    padding: 1.25rem;
-    border-radius: 14px;
-    border: 1.5px solid var(--border);
-    background: linear-gradient(135deg, rgba(139, 92, 246, .06), rgba(6, 182, 212, .04));
-    transition: all 0.3s ease;
-    animation: fade-in-scale 0.6s ease-out;
-}
-.metric:hover {
-    border-color: var(--border-strong);
-    background: linear-gradient(135deg, rgba(139, 92, 246, .1), rgba(6, 182, 212, .08));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, .12);
-}
-.metric-label { 
-    color: #a0afc0; 
-    font: 600 .64rem/1 'DM Mono', monospace; 
-    letter-spacing: .15em; 
-    text-transform: uppercase;
-    opacity: 0.9;
-}
-.metric-value { 
-    margin-top: .5rem; 
-    font-size: 1.42rem; 
-    font-weight: 800; 
-    letter-spacing: -.02em;
-    background: linear-gradient(120deg, #e9d5ff, #a78bfa, #06b6d4);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: counter-up 0.8s ease-out;
+    padding: 1.2rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    transition: all 0.2s ease;
 }
 
-/* Result boxes */
-.result-box {
-    border: 2px solid var(--border-strong);
-    background: linear-gradient(135deg, rgba(30, 15, 50, .4), rgba(15, 10, 28, .6));
-    border-radius: 16px;
-    padding: 1.6rem;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(139, 92, 246, .1), inset 0 0 20px rgba(139, 92, 246, .05);
-    animation: fade-in-scale 0.6s ease-out;
+.metric:hover {
+    border-color: var(--accent-saffron);
+    background: var(--surface-light);
 }
-.result-label {
-    color: #a78bfa;
-    font: 700 .7rem/1 'DM Mono', monospace;
-    letter-spacing: .16em;
+
+.metric-label {
+    color: var(--text-muted);
+    font: 600 0.7rem/1 'Inter', monospace;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin-bottom: 1rem;
+}
+
+.metric-value {
+    margin-top: 0.6rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-saffron);
+    letter-spacing: -0.01em;
+}
+
+/* ========== RESULT BOXES ========== */
+.result-box {
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 1.8rem;
+    backdrop-filter: blur(4px);
+}
+
+.result-label {
+    color: var(--accent-saffron);
+    font: 700 0.75rem/1 'Inter', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
 }
+
 .result-label::before {
     content: '';
-    display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: 3px;
+    height: 3px;
     border-radius: 50%;
-    background: linear-gradient(120deg, #8b5cf6, #06b6d4);
-    animation: glow-pulse 2s ease-in-out infinite;
+    background: var(--accent-saffron);
 }
 
-/* Streamlit tabs */
-button[data-baseweb="tab"] { 
-    color: #a0afc0 !important;
-    font-weight: 600 !important;
+/* ========== TABS ========== */
+button[data-baseweb="tab"] {
+    color: var(--text-muted) !important;
+    font-weight: 500 !important;
     border-bottom: 2px solid transparent !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.2s ease !important;
 }
+
 button[data-baseweb="tab"]:hover {
-    color: #c8d5e8 !important;
-    border-bottom-color: rgba(139, 92, 246, .3) !important;
-}
-button[data-baseweb="tab"][aria-selected="true"] { 
-    color: #e9d5ff !important;
-    border-bottom-color: var(--accent) !important;
+    color: var(--text-secondary) !important;
 }
 
-/* Progress */
-.stProgress > div > div > div > div { 
-    background: linear-gradient(90deg, #8b5cf6, #06b6d4, #ec4899) !important;
-    box-shadow: 0 0 20px rgba(139, 92, 246, .5) !important;
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: var(--accent-saffron) !important;
+    border-bottom-color: var(--accent-saffron) !important;
 }
 
-/* Alerts */
-div[data-testid="stAlert"] { 
-    border-radius: 13px !important;
-    border: 1.5px solid var(--border-strong) !important;
-    background: linear-gradient(135deg, rgba(139, 92, 246, .1), rgba(139, 92, 246, .05)) !important;
+/* ========== PROGRESS ========== */
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, var(--accent-saffron), #ff8c00) !important;
 }
 
-/* Footer */
-.footer { 
-    color: #8b9dc3; 
-    text-align: center; 
-    margin-top: 4rem; 
-    font: 500 .68rem/1.8 'DM Mono', monospace; 
-    letter-spacing: .08em;
-    opacity: 0.8;
-    animation: slide-up 1s ease-out 0.5s both;
+/* ========== ALERTS ========== */
+div[data-testid="stAlert"] {
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    background: var(--surface) !important;
 }
 
+/* ========== FOOTER ========== */
+.footer {
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 4rem;
+    font: 500 0.75rem/1.8 'Inter', monospace;
+    letter-spacing: 0.08em;
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ========== RESPONSIVE ========== */
 @media (max-width: 900px) {
-    .block-container { padding-left: 1rem; padding-right: 1rem; }
-    .hero-wrap { padding: 1.6rem; border-radius: 20px; }
+    .block-container { 
+        padding: 1.5rem 1.5rem 4rem;
+    }
+    .hero-wrap { 
+        padding: 2rem 1.5rem;
+    }
 }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
-# -----------------------------------------------------------------------------
-# Session state
-# -----------------------------------------------------------------------------
+# ============================================================================
+# Session State
+# ============================================================================
 def init_state():
     defaults = {
         "topic_input": "",
@@ -482,22 +442,18 @@ def init_state():
 
 init_state()
 
-# ✅ FIX 1: Sync pending_topic after init_state (example button click)
 if "pending_topic" in st.session_state:
     st.session_state.topic_input = st.session_state.pending_topic
     del st.session_state.pending_topic
 
-# ✅ FIX 3: Auto-trigger research if auto_research flag is set
 auto_research = False
 if "auto_research" in st.session_state and st.session_state.auto_research:
     auto_research = True
     st.session_state.auto_research = False
 
-# ----------
-
-# -----------------------------------------------------------------------------
+# ============================================================================
 # Helpers
-# -----------------------------------------------------------------------------
+# ============================================================================
 def step_html(num, name, state, desc):
     labels = {
         "waiting": ("WAITING", "waiting"),
@@ -562,17 +518,17 @@ def elapsed_label(seconds):
     return f"{seconds:.1f}s"
 
 
-# -----------------------------------------------------------------------------
+# ============================================================================
 # Sidebar
-# -----------------------------------------------------------------------------
+# ============================================================================
 with st.sidebar:
     st.markdown("### 🔬 ResearchMind")
     st.caption("Multi-agent research workspace")
 
     st.markdown("---")
-    st.markdown("**AI runtime**")
+    st.markdown("**AI Runtime**")
     st.markdown(
-        f"<div class='model-pill'><span class='dot'></span> Groq · <code>{GROQ_MODEL}</code></div>",
+        f"<div class='model-pill'><span class='status-dot'></span> Groq · <code>{GROQ_MODEL}</code></div>",
         unsafe_allow_html=True,
     )
     st.caption("Temperature 0 · reasoning effort low")
@@ -585,7 +541,7 @@ with st.sidebar:
         "✍️ Writer chain",
         "🧐 Critic chain",
     ]:
-        st.markdown(f"<div class='muted' style='padding:.35rem 0;font-size:.82rem'>{label}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='padding:.35rem 0;font-size:.82rem;color:var(--text-muted)'>{label}</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     if st.button("↺ Clear workspace", use_container_width=True, type="secondary"):
@@ -597,19 +553,19 @@ with st.sidebar:
         st.session_state.error = None
         st.rerun()
 
-# -----------------------------------------------------------------------------
-# Hero
-# -----------------------------------------------------------------------------
+# ============================================================================
+# Hero Section
+# ============================================================================
 st.markdown(
-    f"""
+    """
     <div class="hero-wrap">
       <div class="eyebrow">◉ MULTI-AGENT RESEARCH SYSTEM</div>
-      <div class="hero-title">Research<span>Mind</span></div>
+      <div class="hero-title"><span class="hero-title-white">Research</span><span class="hero-title-saffron">Mind</span></div>
       <p class="hero-sub">
         Ask a research question and let specialized agents search the web, inspect sources,
         synthesize evidence, and critique the final answer in one workflow.
       </p>
-      <div class="model-pill"><span class="dot"></span> Running on Groq · {GROQ_MODEL}</div>
+      <div class="model-pill"><span class="status-dot"></span> Running on Groq · <code style="color: var(--text-secondary);">""" + GROQ_MODEL + """</code></div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -617,9 +573,9 @@ st.markdown(
 
 st.write("")
 
-# -----------------------------------------------------------------------------
-# Query composer + pipeline overview
-# -----------------------------------------------------------------------------
+# ============================================================================
+# Query Composer + Pipeline
+# ============================================================================
 left, right = st.columns([1.6, 1], gap="large")
 
 with left:
@@ -631,8 +587,7 @@ with left:
         label_visibility="collapsed",
         placeholder="e.g. How is AI affecting entry-level jobs for freshers in India?",
     )
-    
-    # ✅ FIX 2: Sync topic from session state (critical for button click flow)
+
     topic = st.session_state.topic_input
 
     st.write("")
@@ -647,27 +602,20 @@ with left:
     for idx, ex in enumerate(examples):
         with example_cols[idx % 2]:
             if st.button(ex, key=f"example_{idx}", use_container_width=True, type="secondary"):
-                # ✅ Option A: Two-click flow (current - safe, standard)
                 st.session_state.pending_topic = ex
                 st.rerun()
-                
-                # ✅ Option B: Uncomment below for single-click research
-                # st.session_state.topic_input = ex
-                # st.session_state.auto_research = True
-                # st.rerun()
 
     st.write("")
     run_btn = st.button("🚀  Start research", use_container_width=True)
 
 with right:
-    # Always show a compact overview, then live-update it during execution.
     overview_placeholder = st.empty()
     initial_status = {k: "done" if k in st.session_state.results else "waiting" for k in ["search", "reader", "writer", "critic"]}
     render_pipeline(initial_status, overview_placeholder)
 
-# -----------------------------------------------------------------------------
-# Pipeline execution
-# -----------------------------------------------------------------------------
+# ============================================================================
+# Pipeline Execution
+# ============================================================================
 if run_btn or auto_research:
     if not topic.strip():
         st.warning("Enter a research topic first.")
@@ -767,9 +715,9 @@ if run_btn or auto_research:
         with st.expander("View technical error", expanded=True):
             st.code(str(exc), language="text")
 
-# -----------------------------------------------------------------------------
+# ============================================================================
 # Results
-# -----------------------------------------------------------------------------
+# ============================================================================
 r = st.session_state.results
 
 if r:
@@ -875,9 +823,9 @@ if r:
         if not trace_rows:
             st.info("No timing data yet.")
 
-# -----------------------------------------------------------------------------
+# ============================================================================
 # Footer
-# -----------------------------------------------------------------------------
+# ============================================================================
 st.markdown(
     "<div class='footer'>ResearchMind · LangChain multi-agent pipeline · Streamlit UI · Groq runtime</div>",
     unsafe_allow_html=True,
